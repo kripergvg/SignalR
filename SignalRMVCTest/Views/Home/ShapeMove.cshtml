@@ -16,38 +16,25 @@
     <script src="~/Scripts/jquery-ui-1.11.4.js"></script>
 
     <script>
-        $(function() {
+        $(function () {
             var moveShapeHub = $.connection.moveShapeHub,
-                $shape = $("#shape"),
-                messageFrequency = 500,
-                updateRate = 1000 / messageFrequency,
-                shape = {
-                    left: 0,
-                    top: 0
-                },
-                moved = false;
-            moveShapeHub.client.updateShape = function(model) {
-                shape = model;
-                $shape.animate(shape, { duration: updateRate, queue: false });
+            $shape = $("#shape"),
+            shapeModel = {
+                left: 0,
+                top: 0
             };
-
-            $.connection.hub.start().done(function() {
+            moveShapeHub.client.updateShape = function (model) {
+                shapeModel = model;
+                $shape.css({ left: model.left, top: model.top });
+            };
+            $.connection.hub.start().done(function () {
                 $shape.draggable({
-                    drag: function() {
-                        shape = $shape.offset();
-                        moved = true;
+                    drag: function () {
+                        shapeModel = $shape.offset();
+                        moveShapeHub.server.updateModel(shapeModel);
                     }
                 });
-
-                setInterval(updateServerModel, updateRate);
             });
-
-            function updateServerModel() {
-                if (moved) {
-                    moveShapeHub.server.updateModel(shape);
-                    moved = false;
-                }
-            }
         });
     </script>
 }
