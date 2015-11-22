@@ -1,0 +1,55 @@
+﻿
+@{
+    ViewBag.Title = "title";
+}
+
+<style>
+    #shape {
+        width: 100px;
+        height: 100px;
+        background-color: #FF0000;
+    }
+</style>
+@section scripts{
+    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script src="~/Scripts/jquery-ui-1.11.4.js"></script>
+
+    <script>
+        $(function() {
+            var moveShapeHub = $.connection.moveShapeHub,
+                $shape = $("#shape"),
+                messageFrequency = 500,
+                updateRate = 1000 / messageFrequency,
+                shape = {
+                    left: 0,
+                    top: 0
+                },
+                moved = false;
+            moveShapeHub.client.updateShape = function(model) {
+                shape = model;
+                $shape.animate(shape, { duration: updateRate, queue: false });
+            };
+
+            $.connection.hub.start().done(function() {
+                $shape.draggable({
+                    drag: function() {
+                        shape = $shape.offset();
+                        moved = true;
+                    }
+                });
+
+                setInterval(updateServerModel, updateRate);
+            });
+
+            function updateServerModel() {
+                if (moved) {
+                    moveShapeHub.server.updateModel(shape);
+                    moved = false;
+                }
+            }
+        });
+    </script>
+}
+
+<div id="shape"></div>
